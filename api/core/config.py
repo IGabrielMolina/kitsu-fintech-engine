@@ -5,7 +5,6 @@ class Settings(BaseSettings):
     PROJECT_NAME: str = "Kitsu Fintech Engine"
     API_V1_STR: str = "/api/v1"
 
-    # Environment variables
     FINTECH_API_KEY: str = os.getenv("FINTECH_API_KEY", "your_default_secure_key")
     OLLAMA_URL: str = os.getenv("OLLAMA_URL", "http://kitsu_brain:11434/api/generate")
     MODEL_NAME: str = "qwen2.5:14b"

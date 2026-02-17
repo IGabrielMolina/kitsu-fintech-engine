@@ -1,0 +1,529 @@
+{
+  "name": "email_invoice",
+  "nodes": [
+    {
+      "parameters": {
+        "operation": "sendAndWait",
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C0AFR0BNU1X",
+          "mode": "list",
+          "cachedResultName": "approvals_kitsu"
+        },
+        "message": "=⚠️ Gasto detectado de {{ $json.Resultado.proveedor }}. Monto: {{ $json.Resultado.total }} {{ $json.Resultado.moneda }}. ¿Aprobás este pago?",
+        "approvalOptions": {
+          "values": {
+            "approvalType": "double"
+          }
+        },
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.4,
+      "position": [
+        1088,
+        -80
+      ],
+      "id": "6a0d82e6-70c4-44b8-8d08-ea08935b7914",
+      "name": "Send message and wait for response",
+      "webhookId": "e6704c95-64cf-48d2-af28-95f0c0db8a00",
+      "credentials": {
+        "slackApi": {
+          "id": "urPsvAdRBHy01glG",
+          "name": "Slack account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "4eb1b5a2-a7f8-4280-86b6-3fde4882ae58",
+              "leftValue": "={{ $json.data.approved }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1344,
+        -80
+      ],
+      "id": "b17ce57b-592d-4323-baf5-12f5bb1a5c98",
+      "name": "is_approved"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "d18f134e-fb1d-40d4-a60c-3c3b77ab48ae",
+              "leftValue": "={{ $json.Resultado.total }}",
+              "rightValue": 4000,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        832,
+        -64
+      ],
+      "id": "177c51ef-65a7-43e4-8686-0fa063ef253c",
+      "name": "needs_approval"
+    },
+    {
+      "parameters": {
+        "schema": {
+          "__rl": true,
+          "value": "public",
+          "mode": "list",
+          "cachedResultName": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "audited_invoices",
+          "mode": "list",
+          "cachedResultName": "audited_invoices"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "vendor_name": "={{ $('AI_Processing').item.json.result.proveedor || null }}",
+            "tax_id": "={{ $('AI_Processing').item.json.result.cuit || null }}",
+            "total_amount": "={{ $('AI_Processing').item.json.result.total || 0 }}",
+            "currency": "={{ $('AI_Processing').item.json.Resultado.moneda || \"USD\" }}",
+            "approval_status": "={{ $('Send message and wait for response').isExecuted ? ($('Send message and wait for response').item.json.data.approved ? \"Approved\" : \"Declined\") : \"Auto-Approved\" || null }}",
+            "processed_at": "={{  $now.toUTC() }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "vendor_name",
+              "displayName": "vendor_name",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "tax_id",
+              "displayName": "tax_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "total_amount",
+              "displayName": "total_amount",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "currency",
+              "displayName": "currency",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "approval_status",
+              "displayName": "approval_status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "approver_comments",
+              "displayName": "approver_comments",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "processed_at",
+              "displayName": "processed_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "raw_response_json",
+              "displayName": "raw_response_json",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "object",
+              "canBeUsedToMatch": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1664,
+        160
+      ],
+      "id": "66f4d718-c8e0-4594-9c2e-70067ee88774",
+      "name": "Insert rows in a table",
+      "credentials": {
+        "postgres": {
+          "id": "XmXVED5oCQMGJBWp",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:9999/process-invoice",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-API-KEY",
+              "value": "A1w2n4!!rrFjdd1eeeeldWdhfb548f98e9e8e9t4948h49809dddDwdbndibifibbf!!!fweiubifbe34549jpdbwphb89v3bvfiv29732v3ifygu8"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "content",
+              "value": "={{ $input.item.json.final_text }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        592,
+        -64
+      ],
+      "id": "947e26d8-dd3c-4863-a4c3-727f7a9723b5",
+      "name": "AI_Processing"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "c8867865-c087-41a9-ae88-2f7434ecb298",
+              "leftValue": "={{ $binary.attachment_0 ? true : false }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -272,
+        -80
+      ],
+      "id": "ae518e9e-0d7e-49ce-9f1f-17bcc0089b62",
+      "name": "has_attachment"
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "binaryPropertyName": "attachment_0",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        64,
+        -224
+      ],
+      "id": "6987032c-64fa-46af-b1ab-ec9d9c7a808c",
+      "name": "Extract from File"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "26e7d9eb-affa-4083-a8c2-af9bab700018",
+              "name": "final_text",
+              "value": "={{ $json.text }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        288,
+        -224
+      ],
+      "id": "a751e29f-d551-42ff-8ad6-b1a97e0552c3",
+      "name": "Set PDF Content"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d96f1559-2fed-479d-83a3-a66d38884796",
+              "name": "final_text",
+              "value": "={{ $json.textPlain }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        160,
+        48
+      ],
+      "id": "112471d7-604d-40cc-8d8f-7ecd794fa6fc",
+      "name": "Set Body Content"
+    },
+    {
+      "parameters": {
+        "postProcessAction": "nothing",
+        "format": "resolved",
+        "options": {
+          "customEmailConfig": "[\"ALL\"]",
+          "trackLastMessageId": false
+        }
+      },
+      "type": "n8n-nodes-base.emailReadImap",
+      "typeVersion": 2.1,
+      "position": [
+        -576,
+        -80
+      ],
+      "id": "0c444a46-f6c7-4dce-899e-13f952ed8b52",
+      "name": "Email Trigger (IMAP)",
+      "credentials": {
+        "imap": {
+          "id": "eWWdSHnRKcE7wuOm",
+          "name": "Kitsu_mail"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Send message and wait for response": {
+      "main": [
+        [
+          {
+            "node": "is_approved",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "is_approved": {
+      "main": [
+        [
+          {
+            "node": "Insert rows in a table",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "needs_approval": {
+      "main": [
+        [
+          {
+            "node": "Send message and wait for response",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Insert rows in a table",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI_Processing": {
+      "main": [
+        [
+          {
+            "node": "needs_approval",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "has_attachment": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Set Body Content",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "Set PDF Content",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set PDF Content": {
+      "main": [
+        [
+          {
+            "node": "AI_Processing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Body Content": {
+      "main": [
+        [
+          {
+            "node": "AI_Processing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email Trigger (IMAP)": {
+      "main": [
+        [
+          {
+            "node": "has_attachment",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "timeSavedMode": "fixed",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false,
+    "timeSavedPerExecution": 8
+  },
+  "versionId": "4f2e2857-1ea2-4b99-82f5-7736fef9ceb4",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "bacfb5d0a2f8978df1275fd1b26b66a58801eabfe7626fa7e5009cfb82c1eac2"
+  },
+  "id": "GeasRdSxuw6Up4Z7",
+  "tags": []
+}

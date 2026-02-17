@@ -4,7 +4,7 @@ from typing import Any, Dict
 
 def sanitize_ai_response(raw_text: str) -> Dict[str, Any]:
     """
-    Cleans the AI response by removing markdown blocks and parsing it into a JSON object.
+    This one cleans the AI response by removing markdown blocks and parsing it into a JSON object.
     """
     # Regex to extract content inside ```json blocks if present
     match = re.search(r"```json\s*(.*?)\s*```", raw_text, re.DOTALL)
