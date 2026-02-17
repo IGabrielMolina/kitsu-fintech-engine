@@ -1,0 +1,11 @@
+# Entornos virtuales
+venv/
+__pycache__/
+*.pyc
+
+# Variables de entorno (¡CRÍTICO!)
+.env
+
+# Datos de contenedores (si mapeaste volúmenes a carpetas locales)
+postgres_data/
+n8n_data/

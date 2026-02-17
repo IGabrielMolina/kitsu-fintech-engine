@@ -1,0 +1,52 @@
+services:
+  fintech-engine:
+    build: .
+    container_name: kitsu_fintech_engine
+    ports:
+      - "9999:8000"
+    env_file:
+      - .env
+    environment:
+      - DATABASE_URL=postgresql://kitsu_user:${POSTGRES_PASSWORD}@kitsu_db:5432/fintech_db
+      - FINTECH_API_KEY=${FINTECH_API_KEY}
+      - OLLAMA_URL=http://kitsu_brain:11434/api/generate
+    networks:
+      - n8n_kitsu-net
+    volumes:
+      - .:/app
+      - ./shared_storage:/data
+
+  kitsu_mail:
+    image: rnwood/smtp4dev:v3
+    container_name: kitsu_mail
+    restart: always
+    ports:
+      - "5000:80"
+      - "2525:25"
+      - "143:143"
+    environment:
+      - ServerOptions__HostName=kitsu_mail
+    networks:
+      - n8n_kitsu-net
+
+  db:
+    image: postgres:16
+    container_name: kitsu_db
+    environment:
+      POSTGRES_USER: kitsu_user
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: fintech_db
+    volumes:
+      - ./scripts/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - n8n_kitsu-net
+
+networks:
+  n8n_kitsu-net:
+    external: true
+
+volumes:
+  postgres_data:
